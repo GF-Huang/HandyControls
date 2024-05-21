@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
-    <id>HandyControl</id>
+    <id>HandyControls</id>
     <version>{version}</version>
     <title>HandyOrg</title>
-    <authors>HandyOrg</authors>
+    <authors>GF-Huang</authors>
     <owners>HandyOrg</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="file">LICENSE</license>
     <icon>icon.png</icon>
-    <projectUrl>https://github.com/HandyOrg/HandyControl</projectUrl>
+    <projectUrl>https://github.com/GF-Huang/HandyControls/tree/custom</projectUrl>
     <description>Contains some simple and commonly used WPF controls</description>
-    <releaseNotes>Changes are detailed at https://github.com/HandyOrg/HandyControl/releases</releaseNotes>
+    <releaseNotes>Changes are detailed at https://github.com/GF-Huang/HandyControls/tree/custom/releases</releaseNotes>
     <copyright>Copyright © HandyOrg 2018-{year}</copyright>
     <tags>WPF C# Control</tags>
-    <repository type="git" url="https://github.com/HandyOrg/HandyControl" commit="{commit}" />
+    <repository type="git" url="https://github.com/GF-Huang/HandyControls/tree/custom" commit="{commit}" />
     <dependencies />
   </metadata>
   <files>
