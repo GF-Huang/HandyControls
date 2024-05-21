@@ -64,11 +64,15 @@ namespace HandyControl.Controls
 #else
             var chrome = new WindowChrome
             {
-                CornerRadius = new CornerRadius(),
                 ResizeBorderThickness = new Thickness(8),
-                GlassFrameThickness = new Thickness(0, 0, 0, 1),
                 UseAeroCaptionButtons = false
             };
+            // if below Win11 22H2
+            if (Environment.OSVersion.Version < new Version(10, 0, 22621, 0))
+            {
+                chrome.CornerRadius = new CornerRadius();
+                chrome.GlassFrameThickness = new Thickness(0, 0, 0, 1);
+            }
 #endif
             BindingOperations.SetBinding(chrome, WindowChrome.CaptionHeightProperty,
                 new Binding(NonClientAreaHeightProperty.Name) { Source = this });

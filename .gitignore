@@ -1,4 +1,4 @@
-﻿.vs
+.vs
 .config
 *.user
 [Bb]in/
@@ -7,3 +7,5 @@ packages/
 build/outputs
 build/tools
 src/Shared/HandyControl_Shared/Themes/Theme.xaml
+src/Net_GE45/HandyControl_Net_GE45/Themes/Theme.xaml
+src/Net_40/HandyControl_Net_40/Themes/Theme.xaml
