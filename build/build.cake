@@ -19,8 +19,8 @@ const string ConfigFilePath = "build.config.xml";
 var target = Argument("target", "build");
 var preReleasePhase = Argument("pre-release-phase", "rc");
 var preRelease = Argument("pre-release", false);
-var username = Argument("username", "NaBian");
-var email = Argument("email", "836904362@qq.com");
+var username = Argument("username", "HF-Huang");
+var email = Argument("email", "GF-Huang@users.noreply.github.com");
 
 var libVersion = "";
 var nugetVersion = "";
