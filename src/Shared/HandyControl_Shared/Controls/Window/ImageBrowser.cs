@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -57,7 +58,11 @@ public class ImageBrowser : Window
         {
             try
             {
-                _imageViewer.ImageSource = BitmapFrame.Create(uri);
+                _imageViewer.ImageSource = BitmapFrame.Create(
+                    bitmapUri: uri,
+                    createOptions: BitmapCreateOptions.None,
+                    cacheOption: BitmapCacheOption.OnLoad
+                );
                 _imageViewer.ImgPath = uri.AbsolutePath;
 
                 if (File.Exists(_imageViewer.ImgPath))
@@ -79,7 +84,6 @@ public class ImageBrowser : Window
     /// <param name="path"></param>
     public ImageBrowser(string path) : this(new Uri(path))
     {
-
     }
 
     public override void OnApplyTemplate()
@@ -110,6 +114,12 @@ public class ImageBrowser : Window
         }
     }
 
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        _imageViewer?.Dispose();
+        base.OnClosing(e);
+    }
+
     private void ButtonClose_OnClick(object sender, RoutedEventArgs e) => Close();
 
     private void PanelTopOnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -122,7 +132,8 @@ public class ImageBrowser : Window
 
     private void ImageViewer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.LeftButton == MouseButtonState.Pressed && !(_imageViewer.ImageWidth > ActualWidth || _imageViewer.ImageHeight > ActualHeight))
+        if (e.LeftButton == MouseButtonState.Pressed &&
+            !(_imageViewer.ImageWidth > ActualWidth || _imageViewer.ImageHeight > ActualHeight))
         {
             DragMove();
         }

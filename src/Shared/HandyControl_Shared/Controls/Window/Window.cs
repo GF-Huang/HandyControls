@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using HandyControl.Data;
@@ -55,28 +54,7 @@ namespace HandyControl.Controls
 
         public Window()
         {
-#if NET40
-            var chrome = new WindowChrome
-            {
-                CornerRadius = new CornerRadius(),
-                GlassFrameThickness = new Thickness(0, 0, 0, 1)
-            };
-#else
-            var chrome = new WindowChrome
-            {
-                ResizeBorderThickness = new Thickness(8),
-                UseAeroCaptionButtons = false
-            };
-            // if below Win11 22H2
-            if (Environment.OSVersion.Version < new Version(10, 0, 22621, 0))
-            {
-                chrome.CornerRadius = new CornerRadius();
-                chrome.GlassFrameThickness = new Thickness(0, 0, 0, 1);
-            }
-#endif
-            BindingOperations.SetBinding(chrome, WindowChrome.CaptionHeightProperty,
-                new Binding(NonClientAreaHeightProperty.Name) { Source = this });
-            WindowChrome.SetWindowChrome(this, chrome);
+            ApplyWindowChrome(WindowState);
             _commonPadding = Padding;
 
             Loaded += (s, e) => OnLoaded(e);
@@ -443,7 +421,7 @@ namespace HandyControl.Controls
                 case InteropValues.WM_SYSCOMMAND:
                     if (!ShowMaxButton)
                     {
-                        if ((int) wparam == InteropValues.SC_MAXIMIZE || (int) wparam == InteropValues.SC_RESTORE)
+                        if ((int) wparam == InteropValues.SC_MAXIMIZE)
                         {
                             handled = true;
                         }

@@ -3,8 +3,8 @@
   <metadata>
     <id>HandyControls</id>
     <version>{version}</version>
-    <title>HandyOrg</title>
-    <authors>GF-Huang</authors>
+    <title>HandyControl</title>
+    <authors>HandyOrg</authors>
     <owners>HandyOrg</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="file">LICENSE</license>
