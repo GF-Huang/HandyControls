@@ -246,7 +246,7 @@
     </ControlTemplate>
 
     <!--可编辑下拉框中的输入框-->
-    <Style x:Key="ComboBoxEditableTextBox" TargetType="TextBox">
+    <Style x:Key="ComboBoxEditableTextBox" TargetType="TextBox" BasedOn="{StaticResource TextBoxBaseStyle}">
         <Setter Property="OverridesDefaultStyle" Value="true" />
         <Setter Property="AllowDrop" Value="true" />
         <Setter Property="MinWidth" Value="0" />
