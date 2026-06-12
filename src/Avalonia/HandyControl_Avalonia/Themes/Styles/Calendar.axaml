@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:ClassModifier="internal"
                     xmlns:hc="https://handyorg.github.io/handycontrol">
     <ControlTheme x:Key="{x:Type CalendarButton}"
                   TargetType="CalendarButton">
@@ -217,12 +218,14 @@
                 Value="{DynamicResource TitleBrush}" />
         <Setter Property="hc:BorderElement.CornerRadius"
                 Value="{StaticResource DefaultCornerRadius}" />
+        <Setter Property="CornerRadius"
+                Value="{Binding $self.(hc:BorderElement.CornerRadius)}" />
         <Setter Property="hc:TitleElement.Foreground"
                 Value="{DynamicResource TextIconBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel Margin="8,4,8,8">
-                    <Border CornerRadius="{Binding Path=(hc:BorderElement.CornerRadius),RelativeSource={RelativeSource TemplatedParent}}"
+                    <Border CornerRadius="{TemplateBinding CornerRadius}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Background="{TemplateBinding Background}"

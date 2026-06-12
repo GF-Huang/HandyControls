@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:ClassModifier="internal"
                     xmlns:hc="clr-namespace:HandyControl.Controls">
     <ControlTheme x:Key="ListBoxItemBaseStyle"
                   TargetType="ListBoxItem">
@@ -60,6 +61,8 @@
                 Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness"
                 Value="1" />
+        <Setter Property="hc:BorderElement.CornerRadius"
+                Value="{StaticResource DefaultCornerRadius}" />
         <Setter Property="CornerRadius"
                 Value="{Binding $self.(hc:BorderElement.CornerRadius)}" />
         <Setter Property="Padding"
@@ -72,8 +75,6 @@
                 Value="True" />
         <Setter Property="ItemContainerTheme"
                 Value="{StaticResource ListBoxItemBaseStyle}" />
-        <Setter Property="hc:BorderElement.CornerRadius"
-                Value="{StaticResource DefaultCornerRadius}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Border BorderBrush="{TemplateBinding BorderBrush}"

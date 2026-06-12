@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:ClassModifier="internal"
                     xmlns:hc="clr-namespace:HandyControl.Controls">
     <ControlTheme x:Key="RepeatButtonBaseStyle"
                   TargetType="RepeatButton">
@@ -375,6 +376,8 @@
                 Value="{DynamicResource PrimaryTextBrush}" />
         <Setter Property="hc:BorderElement.CornerRadius"
                 Value="0" />
+        <Setter Property="CornerRadius"
+                Value="{Binding $self.(hc:BorderElement.CornerRadius)}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Border BorderThickness="{TemplateBinding BorderThickness}"
@@ -415,6 +418,8 @@
                 Value="{DynamicResource PrimaryTextBrush}" />
         <Setter Property="hc:BorderElement.CornerRadius"
                 Value="0" />
+        <Setter Property="CornerRadius"
+                Value="{Binding $self.(hc:BorderElement.CornerRadius)}" />
         <Setter Property="Padding"
                 Value="6" />
         <Setter Property="Template">

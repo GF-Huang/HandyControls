@@ -1,10 +1,13 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:ClassModifier="internal"
                     xmlns:hc="clr-namespace:HandyControl.Controls">
     <ControlTheme x:Key="ProgressBarBaseStyle"
                   TargetType="ProgressBar">
         <Setter Property="hc:BorderElement.CornerRadius"
                 Value="{StaticResource DefaultCornerRadius}" />
+        <Setter Property="CornerRadius"
+                Value="{Binding $self.(hc:BorderElement.CornerRadius)}" />
         <Setter Property="Background"
                 Value="{DynamicResource SecondaryRegionBrush}" />
         <Setter Property="BorderBrush"
@@ -14,7 +17,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Theme="{StaticResource BorderClip}"
-                        CornerRadius="{Binding Path=(hc:BorderElement.CornerRadius),RelativeSource={RelativeSource TemplatedParent}}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         Background="{TemplateBinding Background}">

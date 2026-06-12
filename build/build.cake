@@ -1,8 +1,12 @@
 ﻿#addin nuget:?package=Cake.Git&version=4.0.0
-#addin nuget:?package=Cake.MinVer&version=3.0.0
+#addin nuget:?package=Cake.GitHub&version=1.0.0
+#addin nuget:?package=Octokit&version=13.0.1
 #tool nuget:?package=NuGet.CommandLine&version=6.9.1
 
 using System;
+using System.Text.RegularExpressions;
+using System.Linq;
+using System.Net;
 using System.Xml;
 using System.Xml.Serialization;
 using static System.IO.Directory;
@@ -16,12 +20,15 @@ const string LibNuspecTemplateFilePath = "lib.nuspec.template";
 const string LangNuspecTemplateFilePath = "lang.nuspec.template";
 const string InstallerNuspecTemplateFilePath = "installer.nuspec.template";
 const string ConfigFilePath = "build.config.xml";
+const string NugetSourceUrl = "https://api.nuget.org/v3/index.json";
 
 var target = Argument("target", "build");
 var preReleasePhase = Argument("pre-release-phase", "rc");
 var preRelease = Argument("pre-release", false);
 var username = Argument("username", "GF-Huang");
 var email = Argument("email", "GF-Huang@users.noreply.github.com");
+var nugetToken = Argument("nuget-token", "");
+var githubToken = Argument("github-token", "");
 
 var libVersion = "";
 var nugetVersion = "";
@@ -57,7 +64,11 @@ Setup(context =>
 
     context.Information($"preReleasePhase: {preReleasePhase}");
     context.Information($"preRelease: {preRelease}");
-    FillVersions(GetAutoIncrement());
+
+    var releaseVersion = GetNextVersion(GetLatestVersion(), preRelease, preReleasePhase);
+    libVersion = releaseVersion.Split('-')[0] + ".0";
+    nugetVersion = releaseVersion;
+
     context.Information($"libVersion: {libVersion}");
     context.Information($"nugetVersion: {nugetVersion}");
 
@@ -116,6 +127,22 @@ Task("commit files")
     .Does(() =>
 {
     GitAddAll(gitRootPath);
+
+    var exitCode = StartProcess(
+        "git",
+        new ProcessSettings
+        {
+            Arguments = "diff --cached --quiet",
+            WorkingDirectory = gitRootPath
+        }
+    );
+
+    if (exitCode == 0)
+    {
+        Information("no change.");
+        return;
+    }
+
     GitCommit(gitRootPath, username, email, $"chore: [AUTO] bump up version to {nugetVersion}.");
 });
 
@@ -305,6 +332,50 @@ Task("create demo installers")
     }
 });
 
+Task("push to nuget")
+    .Does(() =>
+{
+    if (string.IsNullOrEmpty(nugetToken))
+    {
+        throw new Exception("NuGet token is required!");
+    }
+
+    var packages = GetFiles("../build/outputs/nuget/HandyControl.*nupkg");
+    NuGetPush(packages, new NuGetPushSettings
+    {
+        ApiKey = nugetToken,
+        Source = NugetSourceUrl,
+        SkipDuplicate = true
+    });
+});
+
+Task("create github release")
+    .Does(async () =>
+{
+    await GitHubCreateReleaseAsync(
+        /// The user name to use for authentication (pass null when using an access token).
+        userName: null,
+        /// The access token or password to use for authentication.
+        apiToken: githubToken,
+        // The owner (user or group) of the repository to create a release in.
+        owner: "HandyOrg",
+        /// The name of the repository to create a release in.
+        repository: "HandyControl",
+        /// The name of the tag to create a release for.
+        /// If the tag does not yet exist, a new tag will be created (using either the HEAD of the default branch or the commit specified in the settings).
+        /// If the tag already exists, the existing tag will be used and the commit specified in the settings will be ignored.
+        tagName: $"v{nugetVersion}",
+        settings: new GitHubCreateReleaseSettings
+        {
+            Name = $"Release v{nugetVersion}",
+            Body = ReadAllText(Combine(buildConfig.OutputsFolder, "CHANGELOG.md"), Encoding.UTF8),
+            Prerelease = preRelease,
+            Overwrite = false,
+            Assets = GetFiles("../build/outputs/installer/net40/*").ToArray(),
+        }
+    );
+});
+
 Task("publish")
     .IsDependentOn("update license")
     .IsDependentOn("update version")
@@ -321,6 +392,8 @@ Task("publish")
     .IsDependentOn("create installer nuspec files")
     .IsDependentOn("pack nuspec files")
     .IsDependentOn("create demo installers")
+    .IsDependentOn("push to nuget")
+    .IsDependentOn("create github release")
     ;
 
 Task("build")
@@ -374,49 +447,71 @@ private void ReplaceFileText(string filePath, string key, string value)
     );
 }
 
-private void FillVersions(MinVerAutoIncrement? autoIncrement)
+private string GetLatestVersion()
 {
-    if (autoIncrement is null)
-    {
-        return;
-    }
+    var lastTag = GitTags(gitRootPath, true).Last();
+    Semver.TryParse(lastTag.FriendlyName.Replace(TagPrefix, ""), out var version);
 
-    var settings = new MinVerSettings
-    {
-        TagPrefix = TagPrefix,
-        DefaultPreReleasePhase = preReleasePhase,
-        AutoIncrement = autoIncrement,
-    };
-    var minVer = MinVer(settings);
-
-    libVersion = minVer.FileVersion;
-    nugetVersion = preRelease
-        ? $"{minVer.Major}.{minVer.Minor}.{minVer.Patch}-{minVer.PreRelease}"
-        : $"{minVer.Major}.{minVer.Minor}.{minVer.Patch}";
+    return version.ToString();
 }
 
-private MinVerAutoIncrement? GetAutoIncrement()
+// author: https://github.com/orgs/HandyOrg/people/DingpingZhang
+private static string GetNextVersion(string versionText, bool canBumpMinor, string previewVersion)
 {
-    const string minorKey = "feat:";
-
-    var lastTag = GitTags(gitRootPath, true).Last();
-    var sha = lastTag.Target.ToString();
-    var logs = GitLog(gitRootPath, sha);
-
-    if (logs.Count == 0)
+    if (string.IsNullOrEmpty(versionText))
     {
-        return null;
+        return "0.1.0";
     }
 
-    foreach (var log in logs.Take(logs.Count - 1))
+    if (!Semver.TryParse(versionText, out var version))
     {
-        if (log.Message.StartsWith(minorKey))
+        throw new InvalidOperationException($"The {versionText} is not a valid version.");
+    }
+
+    bool isPreviewCurrent = !string.IsNullOrEmpty(version.PreviewCode);
+    bool isPreviewNext = !string.IsNullOrEmpty(previewVersion);
+
+    if (!isPreviewCurrent && !isPreviewNext)
+    {
+        // stable -> stable: bump(stable)
+        if (canBumpMinor)
         {
-            return MinVerAutoIncrement.Minor;
+            version.Minor++;
+            version.Patch = 0;
+        }
+        else
+        {
+            version.Patch++;
         }
     }
+    else if (!isPreviewCurrent && isPreviewNext)
+    {
+        // stable -> preview: bump(stable) + rc
+        if (canBumpMinor)
+        {
+            version.Minor++;
+            version.Patch = 0;
+        }
+        else
+        {
+            version.Patch++;
+        }
 
-    return MinVerAutoIncrement.Patch;
+        version.PreviewCode = previewVersion;
+    }
+    else if (isPreviewCurrent && !isPreviewNext)
+    {
+        // preview -> stable: preview - rc
+        version.PreviewCode = string.Empty;
+        version.PreviewPatch = 0;
+    }
+    else
+    {
+        // preview -> preview: stable + bump(rc)
+        version.PreviewPatch++;
+    }
+
+    return version.ToString();
 }
 
 private bool IsFramework(string framework) => !framework.Contains(".");
@@ -504,6 +599,75 @@ public class BuildTask
     public bool BuildLib { get; set; }
 
     public bool BuildDemo { get; set; }
+}
+
+// author: https://github.com/orgs/HandyOrg/people/DingpingZhang
+public class Semver
+{
+    private static readonly Regex SemverPattern = new Regex(@"^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preCode>[a-z]+)(?<prePatch>\d+)?)?$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+
+    public int Major;
+    public int Minor;
+    public int Patch;
+    public string PreviewCode;
+    public int PreviewPatch;
+
+    public override string ToString() => string.IsNullOrEmpty(PreviewCode)
+        ? $"{Major}.{Minor}.{Patch}"
+        : $"{Major}.{Minor}.{Patch}-{PreviewCode}{(PreviewPatch == 0 ? string.Empty : PreviewPatch)}";
+
+    public static bool TryParse(string version, out Semver semver)
+    {
+        var match = SemverPattern.Match(version);
+
+        semver = null;
+        if (match.Success)
+        {
+            string prePatch = match.Groups["prePatch"].Value;
+            semver = new Semver
+            {
+                Major = int.Parse(match.Groups["major"].Value),
+                Minor = int.Parse(match.Groups["minor"].Value),
+                Patch = int.Parse(match.Groups["patch"].Value),
+                PreviewCode = match.Groups["preCode"].Value,
+                PreviewPatch = string.IsNullOrEmpty(prePatch) ? 0 : int.Parse(prePatch),
+            };
+        }
+
+        return match.Success;
+    }
+
+    public static int Compare(Semver left, Semver right)
+    {
+        var version1 = new Version(left.Major, left.Minor, left.Patch);
+        var version2 = new Version(right.Major, right.Minor, right.Patch);
+
+        int result = version1.CompareTo(version2);
+        if (result != 0)
+        {
+            return result;
+        }
+
+        var isEmptyPreviewCode1 = string.IsNullOrEmpty(left.PreviewCode);
+        var isEmptyPreviewCode2 = string.IsNullOrEmpty(right.PreviewCode);
+        if (isEmptyPreviewCode1 && isEmptyPreviewCode2)
+        {
+            return 0;
+        }
+
+        if (isEmptyPreviewCode1)
+        {
+            return 1;
+        }
+
+        if (isEmptyPreviewCode2)
+        {
+            return -1;
+        }
+
+        result = string.Compare(left.PreviewCode, right.PreviewCode, ignoreCase: true);
+        return result == 0 ? left.PreviewPatch - right.PreviewPatch : result;
+    }
 }
 
 #endregion

@@ -6,7 +6,8 @@ namespace HandyControl.Controls;
 public partial class MenuAttach
 {
     public static readonly DependencyProperty PopupVerticalOffsetProperty = DependencyProperty.RegisterAttached(
-        "PopupVerticalOffset", typeof(double), typeof(MenuAttach), new PropertyMetadata(ValueBoxes.Double0Box));
+        "PopupVerticalOffset", typeof(double), typeof(MenuAttach),
+        new FrameworkPropertyMetadata(ValueBoxes.Double0Box, FrameworkPropertyMetadataOptions.Inherits));
 
     public static void SetPopupVerticalOffset(DependencyObject element, double value)
         => element.SetValue(PopupVerticalOffsetProperty, value);
@@ -15,7 +16,8 @@ public partial class MenuAttach
         => (double) element.GetValue(PopupVerticalOffsetProperty);
 
     public static readonly DependencyProperty PopupHorizontalOffsetProperty = DependencyProperty.RegisterAttached(
-        "PopupHorizontalOffset", typeof(double), typeof(MenuAttach), new PropertyMetadata(ValueBoxes.Double0Box));
+        "PopupHorizontalOffset", typeof(double), typeof(MenuAttach),
+        new FrameworkPropertyMetadata(ValueBoxes.Double0Box, FrameworkPropertyMetadataOptions.Inherits));
 
     public static void SetPopupHorizontalOffset(DependencyObject element, double value)
         => element.SetValue(PopupHorizontalOffsetProperty, value);
@@ -24,7 +26,8 @@ public partial class MenuAttach
         => (double) element.GetValue(PopupHorizontalOffsetProperty);
 
     public static readonly DependencyProperty ItemPaddingProperty = DependencyProperty.RegisterAttached(
-        "ItemPadding", typeof(Thickness), typeof(MenuAttach), new PropertyMetadata(default(Thickness)));
+        "ItemPadding", typeof(Thickness), typeof(MenuAttach),
+        new FrameworkPropertyMetadata(default(Thickness), FrameworkPropertyMetadataOptions.Inherits));
 
     public static void SetItemPadding(DependencyObject element, Thickness value)
         => element.SetValue(ItemPaddingProperty, value);
@@ -45,4 +48,14 @@ public partial class MenuAttach
     public static void SetTopLevelMinWidth(DependencyObject obj, double value) => obj.SetValue(TopLevelMinWidthProperty, value);
 
     public static double GetTopLevelMinWidth(DependencyObject obj) => (double) obj.GetValue(TopLevelMinWidthProperty);
+
+    public static readonly DependencyProperty ItemMinHeightProperty = DependencyProperty.RegisterAttached(
+        "ItemMinHeight", typeof(double), typeof(MenuAttach),
+        new FrameworkPropertyMetadata(ValueBoxes.Double0Box, FrameworkPropertyMetadataOptions.Inherits));
+
+    public static void SetItemMinHeight(DependencyObject element, double value)
+        => element.SetValue(ItemMinHeightProperty, value);
+
+    public static double GetItemMinHeight(DependencyObject element)
+        => (double) element.GetValue(ItemMinHeightProperty);
 }

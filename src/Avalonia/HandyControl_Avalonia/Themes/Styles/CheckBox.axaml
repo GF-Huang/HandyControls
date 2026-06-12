@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    x:ClassModifier="internal">
     <ControlTheme x:Key="CheckBoxBaseStyle"
                   TargetType="CheckBox">
         <Setter Property="Foreground"
@@ -60,14 +61,16 @@
                                    Opacity="1"
                                    x:Name="indeterminateMark" />
                     </Panel>
-                    <ContentPresenter x:Name="contentPresenter"
-                                      IsVisible="{Binding $self.Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    <ContentPresenter Name="PART_ContentPresenter"
                                       Grid.Column="1"
-                                      Focusable="False"
-                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                       Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
                                       RecognizesAccessKey="True"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                      TextElement.Foreground="{TemplateBinding Foreground}" />
                 </Grid>
             </ControlTemplate>
         </Setter>
